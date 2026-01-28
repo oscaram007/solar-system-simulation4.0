@@ -73,32 +73,28 @@ function drawStars() {
   });
 }
 
-// Draw planets with visual enhancements and rotation
+// Draw planets with visual enhancements, rotation, and atmosphere/clouds
 function drawPlanets() {
   planets.forEach(planet => {
     planet.angle += planet.speed;
-    planet.rotation += 0.01; // subtle rotation
+    planet.rotation += 0.01;
 
-    // Elliptical orbit
     const x = centerX + planet.a * Math.cos(planet.angle);
     const y = centerY + planet.b * Math.sin(planet.angle);
 
-    // Base gradient
     const gradient = ctx.createRadialGradient(
       x - planet.radius / 3, y - planet.radius / 3, planet.radius / 5,
       x, y, planet.radius
     );
 
-    // Color and texture
+    // Base color
     switch (planet.name) {
       case 'Mercury':
         gradient.addColorStop(0, '#e0e0e0'); gradient.addColorStop(1, '#7a7a7a'); break;
       case 'Venus':
-        gradient.addColorStop(0, '#fff5e6'); gradient.addColorStop(1, '#d4b58c');
-        break;
+        gradient.addColorStop(0, '#fff5e6'); gradient.addColorStop(1, '#d4b58c'); break;
       case 'Earth':
-        gradient.addColorStop(0, '#6ec1ff'); gradient.addColorStop(0.7, '#2e86c1'); gradient.addColorStop(1, '#133f73');
-        break;
+        gradient.addColorStop(0, '#6ec1ff'); gradient.addColorStop(0.7, '#2e86c1'); gradient.addColorStop(1, '#133f73'); break;
       case 'Mars':
         gradient.addColorStop(0, '#ff7f50'); gradient.addColorStop(1, '#b03d1d'); break;
       case 'Jupiter':
@@ -111,17 +107,45 @@ function drawPlanets() {
         gradient.addColorStop(0, '#66a3ff'); gradient.addColorStop(1, '#1c3fa0'); break;
     }
 
-    // Planet body
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(planet.rotation);
+
+    // Draw planet
     ctx.beginPath();
     ctx.arc(0, 0, planet.radius, 0, Math.PI * 2);
     ctx.fillStyle = gradient;
     ctx.fill();
+
+    // Add atmosphere glow for Earth and Venus
+    if (planet.name === 'Earth' || planet.name === 'Venus') {
+      ctx.beginPath();
+      ctx.arc(0, 0, planet.radius + 3, 0, Math.PI * 2);
+      ctx.fillStyle = planet.name === 'Earth' ? 'rgba(135,206,235,0.3)' : 'rgba(255,223,186,0.25)';
+      ctx.fill();
+    }
+
+    // Add simple clouds for Earth
+    if (planet.name === 'Earth') {
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        const cloudRadius = planet.radius * (0.1 + Math.random() * 0.4);
+        const angle = Math.random() * Math.PI * 2;
+        ctx.arc(
+          Math.cos(angle) * planet.radius * 0.5,
+          Math.sin(angle) * planet.radius * 0.5,
+          cloudRadius,
+          0,
+          Math.PI * 2
+        );
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.fill();
+      }
+    }
+
     ctx.restore();
 
-    // Draw moon if exists
+    // Draw moon
     if (planet.moon) {
       planet.moon.angle += planet.moon.speed;
       const mx = x + planet.moon.distance * Math.cos(planet.moon.angle);
@@ -167,7 +191,6 @@ function drawAsteroids() {
 
 // Main animation loop
 function animate() {
-  // Black background
   ctx.fillStyle = 'black';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -203,7 +226,5 @@ function resizeCanvas() {
 }
 
 window.addEventListener('resize', resizeCanvas);
-
-// Initial setup
 resizeCanvas();
 animate();
