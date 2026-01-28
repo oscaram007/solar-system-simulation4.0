@@ -7,15 +7,15 @@ let centerX, centerY;
 const solarData = {
   sun: { radius: 50 },
   planets: [
-    { name: 'Mercury', radius: 5, distance: 70, speed: 0.04 },
-    { name: 'Venus', radius: 12, distance: 100, speed: 0.015 },
-    { name: 'Earth', radius: 13, distance: 140, speed: 0.01,
+    { name: 'Mercury', radius: 5, a: 70, b: 68, speed: 0.047 },
+    { name: 'Venus', radius: 12, a: 100, b: 98, speed: 0.035 },
+    { name: 'Earth', radius: 13, a: 140, b: 138, speed: 0.03,
       moon: { radius: 4, distance: 20, speed: 0.05 } },
-    { name: 'Mars', radius: 8, distance: 180, speed: 0.008 },
-    { name: 'Jupiter', radius: 25, distance: 230, speed: 0.006 },
-    { name: 'Saturn', radius: 22, distance: 280, speed: 0.005 },
-    { name: 'Uranus', radius: 18, distance: 330, speed: 0.003 },
-    { name: 'Neptune', radius: 17, distance: 380, speed: 0.002 }
+    { name: 'Mars', radius: 8, a: 180, b: 178, speed: 0.024 },
+    { name: 'Jupiter', radius: 25, a: 230, b: 228, speed: 0.013 },
+    { name: 'Saturn', radius: 22, a: 280, b: 278, speed: 0.009 },
+    { name: 'Uranus', radius: 18, a: 330, b: 328, speed: 0.006 },
+    { name: 'Neptune', radius: 17, a: 380, b: 378, speed: 0.005 }
   ],
   asteroids: { count: 100, minDistance: 220, maxDistance: 260, minRadius: 1, maxRadius: 3, minSpeed: 0.002, maxSpeed: 0.005 },
   stars: { count: 200 }
@@ -35,6 +35,7 @@ function initialize() {
   planets = solarData.planets.map(p => ({
     ...p,
     angle: Math.random() * Math.PI * 2,
+    rotation: 0,
     moon: p.moon ? { ...p.moon, angle: Math.random() * Math.PI * 2 } : null
   }));
 
@@ -53,79 +54,74 @@ function initialize() {
     stars.push({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      radius: Math.random() * 1.5
+      radius: Math.random() * 1.5,
+      blinkSpeed: 0.01 + Math.random() * 0.02,
+      opacity: Math.random()
     });
   }
 }
 
-// Draw stars
+// Draw twinkling stars
 function drawStars() {
-  ctx.fillStyle = 'white';
   stars.forEach(star => {
+    star.opacity += star.blinkSpeed;
+    if (star.opacity > 1 || star.opacity < 0) star.blinkSpeed *= -1;
     ctx.beginPath();
     ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${star.opacity})`;
     ctx.fill();
   });
 }
 
-// Draw planets with enhanced visual details
+// Draw planets with visual enhancements and rotation
 function drawPlanets() {
   planets.forEach(planet => {
     planet.angle += planet.speed;
-    const x = centerX + planet.distance * Math.cos(planet.angle);
-    const y = centerY + planet.distance * Math.sin(planet.angle);
+    planet.rotation += 0.01; // subtle rotation
 
+    // Elliptical orbit
+    const x = centerX + planet.a * Math.cos(planet.angle);
+    const y = centerY + planet.b * Math.sin(planet.angle);
+
+    // Base gradient
     const gradient = ctx.createRadialGradient(
       x - planet.radius / 3, y - planet.radius / 3, planet.radius / 5,
       x, y, planet.radius
     );
 
-    // Detailed coloring for each planet
+    // Color and texture
     switch (planet.name) {
       case 'Mercury':
         gradient.addColorStop(0, '#e0e0e0'); gradient.addColorStop(1, '#7a7a7a'); break;
       case 'Venus':
-        gradient.addColorStop(0, '#fff5e6'); gradient.addColorStop(1, '#d4b58c'); break;
+        gradient.addColorStop(0, '#fff5e6'); gradient.addColorStop(1, '#d4b58c');
+        break;
       case 'Earth':
         gradient.addColorStop(0, '#6ec1ff'); gradient.addColorStop(0.7, '#2e86c1'); gradient.addColorStop(1, '#133f73');
-        // Clouds
-        for (let i = 0; i < 3; i++) {
-          ctx.beginPath();
-          const cloudRadius = planet.radius * (0.1 + Math.random() * 0.4);
-          const angle = Math.random() * Math.PI * 2;
-          ctx.arc(
-            x + Math.cos(angle) * planet.radius * 0.3,
-            y + Math.sin(angle) * planet.radius * 0.3,
-            cloudRadius,
-            0,
-            Math.PI * 2
-          );
-          ctx.fillStyle = 'rgba(255,255,255,0.3)';
-          ctx.fill();
-        }
         break;
       case 'Mars':
-        gradient.addColorStop(0, '#ff7f50'); gradient.addColorStop(1, '#b03d1d');
-        break;
+        gradient.addColorStop(0, '#ff7f50'); gradient.addColorStop(1, '#b03d1d'); break;
       case 'Jupiter':
-        gradient.addColorStop(0, '#ffe0b2'); gradient.addColorStop(1, '#b07250');
-        break;
+        gradient.addColorStop(0, '#ffe0b2'); gradient.addColorStop(1, '#b07250'); break;
       case 'Saturn':
-        gradient.addColorStop(0, '#fff8c4'); gradient.addColorStop(1, '#d4c08c'); 
-        break;
+        gradient.addColorStop(0, '#fff8c4'); gradient.addColorStop(1, '#d4c08c'); break;
       case 'Uranus':
         gradient.addColorStop(0, '#b0f0ff'); gradient.addColorStop(1, '#4da3cc'); break;
       case 'Neptune':
         gradient.addColorStop(0, '#66a3ff'); gradient.addColorStop(1, '#1c3fa0'); break;
     }
 
-    // Draw planet
+    // Planet body
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(planet.rotation);
     ctx.beginPath();
-    ctx.arc(x, y, planet.radius, 0, Math.PI * 2);
+    ctx.arc(0, 0, planet.radius, 0, Math.PI * 2);
     ctx.fillStyle = gradient;
     ctx.fill();
+    ctx.restore();
 
-    // Draw moon
+    // Draw moon if exists
     if (planet.moon) {
       planet.moon.angle += planet.moon.speed;
       const mx = x + planet.moon.distance * Math.cos(planet.moon.angle);
@@ -199,7 +195,7 @@ function animate() {
   requestAnimationFrame(animate);
 }
 
-// Resize canvas and reinitialize
+// Resize canvas and initialize
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
