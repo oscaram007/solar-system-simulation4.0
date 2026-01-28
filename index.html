@@ -3,11 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Solar System</title>
+  <title>Enhanced Solar System</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <canvas id="solarSystem"></canvas>
+  
+  <div class="info">
+    <h2>Solar System Simulator</h2>
+    <p>Interactive view of our solar system</p>
+  </div>
+  
+  <div class="controls">
+    <label><input type="checkbox" id="showOrbits" checked> Show Orbits</label>
+    <label><input type="checkbox" id="showTrails" checked> Show Trails</label>
+    <label><input type="checkbox" id="showLabels"> Show Labels</label>
+    <label><input type="checkbox" id="showGlow" checked> Glow Effects</label>
+  </div>
+  
   <script src="script.js"></script>
 </body>
 </html>
