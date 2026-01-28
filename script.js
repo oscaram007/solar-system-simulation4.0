@@ -3,7 +3,7 @@ const canvas = document.getElementById('solarSystem');
 const ctx = canvas.getContext('2d');
 
 let centerX, centerY;
-const tilt = 0.92; // Orbital tilt for pseudo-3D
+const tilt = 0.92; // Orbital tilt factor (for pseudo-3D)
 
 // Solar system data
 const solarData = {
@@ -37,14 +37,6 @@ function initialize() {
     ...p,
     angle: Math.random() * Math.PI * 2,
     rotation: 0,
-    rotationSpeed: p.name === 'Earth' ? 0.0005 :
-                   p.name === 'Venus' ? 0.0003 :
-                   p.name === 'Mercury' ? 0.0008 :
-                   p.name === 'Mars' ? 0.0004 :
-                   p.name === 'Jupiter' ? 0.0002 :
-                   p.name === 'Saturn' ? 0.00015 :
-                   p.name === 'Uranus' ? 0.0001 :
-                   0.0001,
     moon: p.moon ? { ...p.moon, angle: Math.random() * Math.PI * 2 } : null
   }));
 
@@ -70,7 +62,7 @@ function initialize() {
   }
 }
 
-// Draw stars
+// Draw stars with twinkle
 function drawStars() {
   stars.forEach(star => {
     star.opacity += star.blinkSpeed;
@@ -82,17 +74,19 @@ function drawStars() {
   });
 }
 
-// Draw planets with pseudo-3D
+// Draw planets with pseudo-3D perspective
 function drawPlanets() {
+  // Sort by distance for z-order (farther first)
   const sorted = planets.slice().sort((a,b) => (a.a + a.b)/2 - (b.a + b.b)/2);
   sorted.forEach(planet => {
     planet.angle += planet.speed;
-    planet.rotation += planet.rotationSpeed;
+    planet.rotation += 0.01;
 
     const x = centerX + planet.a * Math.cos(planet.angle);
-    const y = centerY + planet.b * Math.sin(planet.angle) * tilt;
+    const y = centerY + planet.b * Math.sin(planet.angle) * tilt; // tilt for 3D effect
 
-    const scale = 0.8 + 0.2 * (planet.b / 400);
+    // Simulate perspective: farther planets smaller
+    const scale = 0.8 + 0.2 * (planet.b / 400); 
     const radius = planet.radius * scale;
 
     const gradient = ctx.createRadialGradient(
@@ -120,6 +114,7 @@ function drawPlanets() {
     ctx.fillStyle = gradient;
     ctx.fill();
 
+    // Atmosphere for Earth and Venus
     if(planet.name==='Earth' || planet.name==='Venus'){
       ctx.beginPath();
       ctx.arc(0,0,radius+3,0,Math.PI*2);
@@ -127,10 +122,11 @@ function drawPlanets() {
       ctx.fill();
     }
 
+    // Clouds for Earth
     if(planet.name==='Earth'){
       for(let i=0;i<3;i++){
         ctx.beginPath();
-        const cloudR = radius*(0.1 + Math.random()*0.4);
+        const cloudR = radius* (0.1 + Math.random()*0.4);
         const angle = Math.random()*Math.PI*2;
         ctx.arc(Math.cos(angle)*radius*0.5, Math.sin(angle)*radius*0.5, cloudR,0,Math.PI*2);
         ctx.fillStyle='rgba(255,255,255,0.3)';
@@ -140,6 +136,7 @@ function drawPlanets() {
 
     ctx.restore();
 
+    // Moons
     if(planet.moon){
       planet.moon.angle += planet.moon.speed;
       const mx = x + planet.moon.distance*Math.cos(planet.moon.angle);
@@ -149,6 +146,7 @@ function drawPlanets() {
       ctx.beginPath(); ctx.arc(mx,my,planet.moon.radius,0,Math.PI*2); ctx.fillStyle=moonGrad; ctx.fill();
     }
 
+    // Saturn ring
     if(planet.name==='Saturn'){
       ctx.beginPath();
       ctx.ellipse(x, y, radius*1.6, radius*0.5, Math.PI/4, 0, Math.PI*2);
@@ -157,7 +155,7 @@ function drawPlanets() {
   });
 }
 
-// Draw asteroids
+// Asteroids
 function drawAsteroids(){
   asteroids.forEach(a=>{
     a.angle += a.speed;
@@ -172,6 +170,7 @@ function animate(){
   ctx.fillStyle='black'; ctx.fillRect(0,0,canvas.width,canvas.height);
   drawStars();
 
+  // Sun
   const sunGrad = ctx.createRadialGradient(centerX,centerY,sun.radius*0.2,centerX,centerY,sun.radius);
   sunGrad.addColorStop(0,'#fff9a3'); sunGrad.addColorStop(0.3,'#fff176'); sunGrad.addColorStop(0.6,'#ffd54f'); sunGrad.addColorStop(0.8,'#ffb300'); sunGrad.addColorStop(1,'#ffa000');
   ctx.beginPath(); ctx.arc(centerX,centerY,sun.radius,0,Math.PI*2); ctx.fillStyle=sunGrad; ctx.fill();
