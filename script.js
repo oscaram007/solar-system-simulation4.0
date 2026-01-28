@@ -107,7 +107,7 @@ let planets = [];
 let asteroids = [];
 let stars = [];
 let sun = {};
-let timeSpeed = 0.01; // Controls animation speed (higher = faster)
+let timeSpeed = 0.000001; // Controls animation speed (higher = faster)
 
 // Initialize
 function initialize() {
