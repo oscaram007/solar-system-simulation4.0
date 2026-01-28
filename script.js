@@ -107,7 +107,7 @@ let planets = [];
 let asteroids = [];
 let stars = [];
 let sun = {};
-let timeSpeed = 0.000001; // Controls animation speed (higher = faster)
+let timeSpeed = 0.01; // Controls animation speed (higher = faster)
 
 // Initialize
 function initialize() {
@@ -266,9 +266,11 @@ function drawPlanets() {
     return aPos.y - bPos.y;
   });
 
-  sorted.forEach(planet => {
+sorted.forEach(planet => {
     // Update angle based on orbital period
-    planet.angle += planet.angularVelocity * timeSpeed;
+    // Slow down inner planets (Mercury, Venus, Earth, Mars)
+    const speedMultiplier = planet.semiMajorAxis < 200 ? 0.3 : 1.0;
+    planet.angle += planet.angularVelocity * timeSpeed * speedMultiplier;
     planet.rotation += 0.01;
 
     const pos = getEllipticalPosition(planet, centerX, centerY);
